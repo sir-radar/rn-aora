@@ -7,3 +7,10 @@ declare interface ButtonProps extends TouchableOpacityProps {
   textStyles?: string;
   isLoading?: boolean;
 }
+
+declare interface InputFieldProps extends TextInputProps {
+  title: string;
+  value: string;
+  handleChangeText: (e: string) => void;
+  otherStyles?: string;
+}
