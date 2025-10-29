@@ -176,12 +176,15 @@ export async function uploadFile(file: AppwriteFile | null, type: "image" | "vid
   if (!file) return null;
 
   try {
-    const uploaded = await storage.createFile(appwriteConfig.bucketId, ID.unique(), file, [
-      Permission.read(Role.any()),
-    ]);
+    const uploaded = await storage.createFile({
+      bucketId: appwriteConfig.bucketId,
+      fileId: ID.unique(),
+      file,
+      permissions: [Permission.read(Role.any())],
+    });
     const fileId = uploaded.$id;
 
-    // Construct absolute view URL manually for consistency
+    // Construct absolute view URL manually
     const viewUrl = `${appwriteConfig.endpoint}/storage/buckets/${appwriteConfig.bucketId}/files/${fileId}/view?project=${appwriteConfig.projectId}`;
 
     return viewUrl;

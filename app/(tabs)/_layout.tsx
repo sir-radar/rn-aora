@@ -15,7 +15,7 @@ type TabIconProps = {
 
 const TabIcon = ({ icon, color, name, focused }: TabIconProps) => {
   return (
-    <View className="flex items-center justify-center gap-2">
+    <View className="flex items-center justify-center gap-2 w-20">
       <Image source={icon} resizeMode="contain" tintColor={color} className="w-6 h-6" />
       <Text
         className={`${focused ? "font-psemibold" : "font-pregular"} text-xs`}
