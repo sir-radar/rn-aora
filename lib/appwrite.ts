@@ -1,6 +1,5 @@
 import {
   Account,
-  Avatars,
   Client,
   ID,
   Permission,
@@ -25,7 +24,6 @@ const client = new Client()
 
 const account = new Account(client);
 const storage = new Storage(client);
-const avatars = new Avatars(client);
 const tablesDB = new TablesDB(client);
 
 // TYPES
@@ -151,24 +149,9 @@ export async function getAllPosts(): Promise<Post[]> {
       databaseId: appwriteConfig.databaseId,
       tableId: appwriteConfig.videoTableId,
     });
-    const posts = response.rows;
-    const creatorIds = posts.map((p) => p.creator).filter(Boolean);
+    const posts = response.rows as unknown as Post[];
 
-    if (creatorIds.length === 0) return posts as unknown as Post[];
-
-    const creatorsResponse = await tablesDB.listRows({
-      databaseId: appwriteConfig.databaseId,
-      tableId: appwriteConfig.userTableId,
-      queries: [Query.contains("$id", creatorIds)],
-    });
-
-    const creatorsById = Object.fromEntries(creatorsResponse.rows.map((c) => [c.$id, c]));
-
-    // Merge creator objects into posts
-    return posts.map((p) => ({
-      ...p,
-      creator: creatorsById[p.creator] ?? null,
-    })) as unknown as Post[];
+    return await postsWithCreator(posts);
   } catch (err) {
     const error = err instanceof Error ? err : new Error("getAllPosts failed");
     throw error;
@@ -274,9 +257,31 @@ export async function searchPosts(query: string) {
       tableId: appwriteConfig.videoTableId,
       queries: [Query.search("title", query)],
     });
-    return response.rows as unknown as Post[];
+    const posts = response.rows as unknown as Post[];
+
+    return await postsWithCreator(posts);
   } catch (err) {
     const error = err instanceof Error ? err : new Error("searchPosts failed");
     throw error;
   }
+}
+
+async function postsWithCreator(posts: Post[]) {
+  const creatorIds = posts.map((p) => p.creator).filter(Boolean);
+
+  if (creatorIds.length === 0) return posts as unknown as Post[];
+
+  const creatorsResponse = await tablesDB.listRows({
+    databaseId: appwriteConfig.databaseId,
+    tableId: appwriteConfig.userTableId,
+    queries: [Query.contains("$id", creatorIds)],
+  });
+
+  const creatorsById = Object.fromEntries(creatorsResponse.rows.map((c) => [c.$id, c]));
+
+  // Merge creator objects into posts
+  return posts.map((p) => ({
+    ...p,
+    creator: creatorsById[p.creator as unknown as keyof typeof creatorsById],
+  })) as unknown as Post[];
 }
