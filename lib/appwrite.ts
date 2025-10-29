@@ -253,7 +253,14 @@ export async function getUserPosts(userId: string) {
       tableId: appwriteConfig.videoTableId,
       queries: [Query.equal("creator", userId)],
     });
-    return response.rows as unknown as Post[];
+    const posts = response.rows;
+
+    const user = await getCurrentUser();
+
+    return posts.map((p) => ({
+      ...p,
+      creator: user ?? null,
+    })) as unknown as Post[];
   } catch (err) {
     const error = err instanceof Error ? err : new Error("getUserPosts failed");
     throw error;
