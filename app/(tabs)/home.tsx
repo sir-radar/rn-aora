@@ -2,12 +2,14 @@ import { useState } from "react";
 import { FlatList, Image, RefreshControl, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useGlobalContext } from "@/context/GlobalProvider";
 import { EmptyState, SearchInput, Trending, VideoCard } from "../../components";
 import { images } from "../../constants";
 import { getAllPosts, getLatestPosts } from "../../lib/appwrite";
 import useAppwrite from "../../lib/useAppwrite";
 
 const Home = () => {
+  const { user } = useGlobalContext();
   const { data: posts, refetch } = useAppwrite(getAllPosts);
   const { data: latestPosts } = useAppwrite(getLatestPosts);
 
@@ -19,25 +21,18 @@ const Home = () => {
     setRefreshing(false);
   };
 
-  // one flatlist
-  // with list header
-  // and horizontal flatlist
-
-  //  we cannot do that with just scrollview as there's both horizontal and vertical scroll (two flat lists, within trending)
-
   return (
     <SafeAreaView className="bg-primary">
       <FlatList
         data={posts}
-        // refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.thumbnail}
         renderItem={({ item }) => (
           <VideoCard
             title={item.title}
             thumbnail={item.thumbnail}
             video={item.video}
-            creator={item.creator.username}
-            avatar={item.creator.avatar}
+            creator={item?.creator?.username}
+            avatar={item?.creator?.avatar}
           />
         )}
         ListHeaderComponent={() => (
@@ -45,7 +40,7 @@ const Home = () => {
             <View className="flex justify-between items-start flex-row mb-6">
               <View>
                 <Text className="font-pmedium text-sm text-gray-100">Welcome Back</Text>
-                <Text className="text-2xl font-psemibold text-white">JSMastery</Text>
+                <Text className="text-2xl font-psemibold text-white">{user?.username!}</Text>
               </View>
 
               <View className="mt-1.5">
