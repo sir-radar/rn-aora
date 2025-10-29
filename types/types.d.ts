@@ -13,4 +13,5 @@ declare interface InputFieldProps extends TextInputProps {
   value: string;
   handleChangeText: (e: string) => void;
   otherStyles?: string;
+  placeholder?: string;
 }

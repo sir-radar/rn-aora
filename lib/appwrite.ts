@@ -1,4 +1,14 @@
-import { Account, Avatars, Client, ID, Query, Storage, TablesDB } from "react-native-appwrite";
+import {
+  Account,
+  Avatars,
+  Client,
+  ID,
+  Permission,
+  Query,
+  Role,
+  Storage,
+  TablesDB,
+} from "react-native-appwrite";
 
 export const appwriteConfig = {
   endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT!,
@@ -43,9 +53,10 @@ interface Post {
   prompt: string;
   userId: string;
   [key: string]: any;
+  creator: AppwriteUser;
 }
 
-interface AppwriteFile {
+export interface AppwriteFile {
   name: string;
   type: string;
   size: number;
@@ -79,10 +90,6 @@ export async function createUser(
         username,
         avatar: avatarUrl,
       },
-      permissions: [
-        'read("any")', // adjust as needed
-        'update("user:' + newAccount.$id + '")',
-      ],
     });
 
     return userRow as unknown as AppwriteUser;
@@ -144,7 +151,24 @@ export async function getAllPosts(): Promise<Post[]> {
       databaseId: appwriteConfig.databaseId,
       tableId: appwriteConfig.videoTableId,
     });
-    return response.rows as unknown as Post[];
+    const posts = response.rows;
+    const creatorIds = posts.map((p) => p.creator).filter(Boolean);
+
+    if (creatorIds.length === 0) return posts as unknown as Post[];
+
+    const creatorsResponse = await tablesDB.listRows({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.userTableId,
+      queries: [Query.contains("$id", creatorIds)],
+    });
+
+    const creatorsById = Object.fromEntries(creatorsResponse.rows.map((c) => [c.$id, c]));
+
+    // Merge creator objects into posts
+    return posts.map((p) => ({
+      ...p,
+      creator: creatorsById[p.creator] ?? null,
+    })) as unknown as Post[];
   } catch (err) {
     const error = err instanceof Error ? err : new Error("getAllPosts failed");
     throw error;
@@ -161,6 +185,91 @@ export async function getLatestPosts() {
     return response.rows as unknown as Post[];
   } catch (err) {
     const error = err instanceof Error ? err : new Error("getLatestPosts failed");
+    throw error;
+  }
+}
+
+export async function uploadFile(file: AppwriteFile | null, type: "image" | "video") {
+  if (!file) return null;
+
+  try {
+    const uploaded = await storage.createFile(appwriteConfig.bucketId, ID.unique(), file, [
+      Permission.read(Role.any()),
+    ]);
+    const fileId = uploaded.$id;
+
+    // Construct absolute view URL manually for consistency
+    const viewUrl = `${appwriteConfig.endpoint}/storage/buckets/${appwriteConfig.bucketId}/files/${fileId}/view?project=${appwriteConfig.projectId}`;
+
+    return viewUrl;
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error("uploadFile failed");
+    console.error("uploadFile error:", error);
+    throw error;
+  }
+}
+
+export async function createVideoPost(form: VideoPostForm) {
+  try {
+    if (!form.thumbnail || !form.video) {
+      throw new Error("Both thumbnail and video are required");
+    }
+
+    const [thumbUrl, videoUrl] = await Promise.all([
+      uploadFile(form.thumbnail, "image"),
+      uploadFile(form.video, "video"),
+    ]);
+
+    if (!thumbUrl || !videoUrl) {
+      throw new Error("File upload failed");
+    }
+
+    const user = await getCurrentUser();
+
+    const postRow = await tablesDB.createRow({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.videoTableId,
+      rowId: ID.unique(),
+      data: {
+        title: form.title,
+        thumbnail: thumbUrl,
+        video: videoUrl,
+        prompt: form.prompt,
+        creator: user?.$id,
+      },
+    });
+
+    return postRow;
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error("createVideoPost failed");
+    throw error;
+  }
+}
+
+export async function getUserPosts(userId: string) {
+  try {
+    const response = await tablesDB.listRows({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.videoTableId,
+      queries: [Query.equal("creator", userId)],
+    });
+    return response.rows as unknown as Post[];
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error("getUserPosts failed");
+    throw error;
+  }
+}
+
+export async function searchPosts(query: string) {
+  try {
+    const response = await tablesDB.listRows({
+      databaseId: appwriteConfig.databaseId,
+      tableId: appwriteConfig.videoTableId,
+      queries: [Query.search("title", query)],
+    });
+    return response.rows as unknown as Post[];
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error("searchPosts failed");
     throw error;
   }
 }
