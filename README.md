@@ -1,50 +1,80 @@
-# Welcome to your Expo app 👋
+<h3 align="center">AORA</h3>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+   <div align="center">
+     This Repository is a Full Stack Video sharing social app built using React Native, Expo, Appwrite, and Tailwind CSS.
+   </div>
+</div>
 
-## Get started
+## <a name="tech-stack">⚙️ Tech Stack</a>
 
-1. Install dependencies
+- React Native
+- Expo
+- Appwrite
+- Tailwind CSS
 
-   ```bash
-   npm install
-   ```
+## <a name="features">🔋 Features</a>
 
-2. Start the app
+👉 **Email and Password Authentication**: Secure login with email and password.
 
-   ```bash
-   npx expo start
-   ```
+👉 **Home Screen**: Display trending and latest contents.
 
-In the output, you'll find options to open the app in a
+👉 **Content Creation Screen**: Create content to display.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+👉 **Content Search Screen**: Simple search for contents.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+👉 **User Profile Screen**: User profile details.
 
-## Get a fresh project
+## <a name="quick-start">🤸 Quick Start</a>
 
-When you're ready, run:
+Follow these steps to set up the project locally on your machine.
+
+**Prerequisites**
+
+Make sure you have the following installed on your machine:
+
+- [Git](https://git-scm.com/)
+- [Node.js](https://nodejs.org/en)
+- [npm](https://www.npmjs.com/) (Node Package Manager)
+
+**Cloning the Repository**
 
 ```bash
-npm run reset-project
+git clone https://github.com/sir-radar/rn-aora.git
+cd rn-aora
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+**Installation**
 
-## Learn more
+Install the project dependencies using npm:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm install
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**Set Up Environment Variables**
 
-## Join the community
+Create a new file named `.env` in the root of your project and add the following content:
 
-Join our community of developers creating universal apps.
+```env
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+EXPO_PUBLIC_APPWRITE_PROJECT_ID=
+EXPO_PUBLIC_APPWRITE_ENDPOINT=
+EXPO_PUBLIC_APPWRITE_DATABASE_ID=
+EXPO_PUBLIC_APPWRITE_USERS_TABLE_ID=
+EXPO_PUBLIC_APPWRITE_VIDEOS_TABLE_ID=
+EXPO_PUBLIC_APPWRITE_STORAGE_BUCKET_ID=
+
+
+```
+
+Replace the placeholder values with your actual Appwrite credentials. You can
+obtain these credentials by signing up on
+the [Appwrite](https://appwrite.io/) website.
+
+**Running the Project**
+
+```bash
+npx expo start
+```
+
+Download the [Expo Go](https://expo.dev/go) app and Scan the QR code on your respective device to view the project.
